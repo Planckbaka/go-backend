@@ -1,0 +1,3 @@
+CREATE EXTENSION IF NOT EXISTS vector;
+-- 可选：用于模糊搜索
+-- CREATE EXTENSION IF NOT EXISTS pg_trgm;
