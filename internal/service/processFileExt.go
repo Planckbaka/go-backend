@@ -232,7 +232,7 @@ func (fp *FileProcessor) processDocument(record *model.File) (string, *model.Doc
 	}
 
 	// 4. 保存Markdown文件
-	if err := os.WriteFile(createDir, []byte(markdownContent), 0644); err != nil {
+	if err := os.WriteFile(processedPath, []byte(markdownContent), 0644); err != nil {
 		return "", nil, fmt.Errorf("保存Markdown文件失败: %w", err)
 	}
 

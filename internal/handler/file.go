@@ -171,7 +171,6 @@ func getNextFileNumber(tx *gorm.DB, fullPath string) (int, error) {
 	var maxFile model.File
 
 	pathPattern := filepath.Join(fullPath, "%")
-	fmt.Println(pathPattern)
 
 	err := tx.Where("original_file_path LIKE ?", pathPattern).
 		Order("id DESC").
