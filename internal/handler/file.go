@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"errors"
@@ -13,6 +13,7 @@ import (
 
 	"github.com/Planckbaka/go-backend/internal/database"
 	"github.com/Planckbaka/go-backend/internal/model"
+	"github.com/Planckbaka/go-backend/internal/service"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -69,6 +70,13 @@ func UploadMultipleFiles(c *gin.Context) {
 	c.JSON(statusCode, response)
 }
 
+// processSingleFile 统一处理单个文件函数
+// Description: 接收单个文件，根据文件上传日期将文件存储到对应文件夹，根据当天文件数排序,并把数据存储到数据库中
+// 文件夹路径 uploads/original/2006/01/02
+// Parameters:
+//   - fileHeader: 文件的头信息
+//
+// Return
 func processSingleFile(fileHeader *multipart.FileHeader) (*model.File, error) {
 
 	dbConn := database.DB
@@ -141,7 +149,22 @@ func processSingleFile(fileHeader *multipart.FileHeader) (*model.File, error) {
 	if err := dbConn.Create(fileRecord).Error; err != nil {
 		return nil, err
 	}
+	err = processFile(dbConn, fullDir, fileHeader, fileRecord.ID)
+	if err != nil {
+		return nil, err
+	}
 	return fileRecord, nil
+}
+
+func processFile(db *gorm.DB, uploadDir string, fileHeader *multipart.FileHeader, fileID uint) error {
+	dateDir := time.Now().Format("2006/01/02")
+	processedDir := filepath.Join("uploads/processed", dateDir)
+	fp := service.NewFileProcessor(db, uploadDir, processedDir)
+	err := fp.ProcessUploadedFile(fileHeader, fileID)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func getNextFileNumber(tx *gorm.DB, fullPath string) (int, error) {

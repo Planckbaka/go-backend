@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>多文件上传</title>
+</head>
+<body>
+<h2>上传多个文件</h2>
+
+<input type="file" id="fileInput" multiple accept="image/*,application/pdf">
+<button onclick="uploadFiles()">上传文件</button>
+
+<div id="progress"></div>
+<div id="result"></div>
+
+<script>
+    async function uploadFiles() {
+        const fileInput = document.getElementById('fileInput');
+        const files = fileInput.files;
+
+        if (files.length === 0) {
+            alert('请选择文件');
+            return;
+        }
+
+        // 创建 FormData 对象
+        const formData = new FormData();
+
+        // 将所有文件添加到 formData，注意字段名必须与后端一致
+        for (let i = 0; i < files.length; i++) {
+            formData.append('files', files[i]);
+        }
+
+        // 如果需要额外的元数据，可以这样添加
+        // formData.append('caption', '这是图片说明');
+        // formData.append('tags', JSON.stringify(['tag1', 'tag2']));
+
+        try {
+            document.getElementById('progress').textContent = '上传中...';
+
+            const response = await fetch('http://localhost:8080/api/v1/files/upload', {
+                method: 'POST',
+                body: formData,
+                // 不要手动设置 Content-Type，浏览器会自动设置正确的 boundary
+            });
+
+            const result = await response.json();
+            result.failed = undefined;
+
+            document.getElementById('progress').textContent = '';
+            document.getElementById('result').innerHTML = `
+                    <h3>上传结果</h3>
+                    <p>成功: ${result.success} 个文件</p>
+                    <p>失败: ${result.failed} 个文件</p>
+                    <pre>${JSON.stringify(result, null, 2)}</pre>
+                `;
+
+        } catch (error) {
+            document.getElementById('progress').textContent = '';
+            document.getElementById('result').textContent = '上传失败: ' + error.message;
+        }
+    }
+</script>
+</body>
+</html>
